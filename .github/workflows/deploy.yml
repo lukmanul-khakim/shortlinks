@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ghcr.io/lukmanul-khakim/shortlinks
+  IMAGE_NAME: lukmankhakim09/shortlinks
 
 jobs:
 #----- Job 1: Test -------
