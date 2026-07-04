@@ -1,0 +1,25 @@
+name: CD
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+
+  deploy:
+    runs-on: self-hosted
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deploy
+        env:
+          IMAGE_DIGEST: ${{ needs.build-and-push.outputs.image-digest }}
+        run: |
+          cd ~/project/deploy/shortlink
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
+      - name: Verify
+        run: |
+          sleep 10
+          curl -f http://localhost:8000/healthz
