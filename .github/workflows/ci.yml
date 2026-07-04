@@ -124,8 +124,16 @@ jobs:
           IMAGE_DIGEST: ${{ needs.build-and-push.outputs.image-digest }}
         run: |
           cd ~/project/deploy/shortlink
+
+          # tulis atau replace baris IMAGE_DIGEST ke .env (idempotent)
+          grep -v '^IMAGE_DIGEST=' .env > .env.tmp || true
+          echo "IMAGE_DIGEST=${IMAGE_DIGEST}" >> .env.tmp
+          mv .env.tmp .env
+          chmod 600 .env
+
           docker compose -f docker-compose.prod.yml pull
           docker compose -f docker-compose.prod.yml up -d
+
       - name: Verify
         run: |
           sleep 10
