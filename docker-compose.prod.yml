@@ -1,0 +1,23 @@
+services:
+  migrate:
+    image: ghcr.io/lukmanul-khakim/shortlinks@${IMAGE_DIGEST}
+    command: ["sh", "-c", "until python -c 'import socket; s=socket.socket(); s.settimeout(1); s.connect((\"10.10.0.2\", 5432))' 2>/dev/null; do echo 'Nunggu db...'; sleep 2; done; python scripts/migrate.py"]
+
+    container_name: sh-migrate
+    env_file: .env
+
+  app:
+    image: ghcr.io/lukmanul-khakim/shortlinks@${IMAGE_DIGEST}
+    restart: unless-stopped
+    container_name: sh-app
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
